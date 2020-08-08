@@ -108,11 +108,11 @@
             <div class="inline-flex mt-2 xs:mt-0">
               <button
                 type="button"
-                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm leading-5 font-medium focus:z-10 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-500 transition ease-in-out duration-150"
+                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm leading-5 font-medium focus:z-10 focus:outline-none active:bg-gray-100 active:text-gray-500 transition ease-in-out duration-150"
                 aria-label="Previous"
                 :class="[
                   page === 1
-                    ? 'text-gray-200 hover:text-gray-200 cursor-not-allowed'
+                    ? 'text-gray-300 hover:text-gray-300 cursor-not-allowed'
                     : 'text-gray-500 hover:text-gray-400'
                 ]"
                 :disabled="page == '1'"
@@ -130,8 +130,8 @@
               <button
                 v-for="p in lastPage"
                 :key="p"
-                class="-ml-px relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm leading-5 font-medium text-gray-700 hover:text-gray-500 focus:z-10 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-700 transition ease-in-out duration-150"
-                :class="[p === page ? 'text-red-500' : 'text-gray-500']"
+                class="-ml-px relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm leading-5 font-medium text-gray-700 hover:text-gray-500 focus:z-10 focus:outline-none active:bg-gray-100 active:text-gray-700 transition ease-in-out duration-150"
+                :class="[p === page ? 'font-bold' : 'font-normal']"
                 type="button"
                 @click="changePage(p)"
               >
@@ -144,7 +144,7 @@
                 aria-label="Next"
                 :class="[
                   page === lastPage
-                    ? 'text-gray-200 hover:text-gray-200 cursor-not-allowed'
+                    ? 'text-gray-300 hover:text-gray-300 cursor-not-allowed'
                     : 'text-gray-500 hover:text-gray-400'
                 ]"
                 :disabled="page === lastPage"
