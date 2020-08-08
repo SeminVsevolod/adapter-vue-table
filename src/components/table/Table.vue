@@ -6,6 +6,9 @@
           <div class="relative">
             <select
               class="appearance-none h-full rounded-l border block appearance-none w-full bg-white border-gray-400 text-gray-700 py-2 px-4 pr-8 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+              @change="changePerPage($event.target.value)"
+              :value="perPage"
+              title="По сколько строк отображать за раз"
             >
               <option>5</option>
               <option>10</option>
@@ -47,7 +50,7 @@
             <thead>
               <tr>
                 <th
-                  v-for="column in columns"
+                  v-for="column in localColumns"
                   :key="column.key"
                   class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
                 >
@@ -59,14 +62,11 @@
               <tr v-for="(row, row_index) in filteredRows" :key="row_index">
                 <!-- Изображение -->
                 <td
-                  v-for="column in columns"
+                  v-for="column in localColumns"
                   :key="`row-${row_index}.col-${column.key}`"
                   class="px-5 py-5 border-b border-gray-200 bg-white text-sm"
                 >
-                  <div
-                    v-if="column.type === TableTypes.Image"
-                    class="flex items-center"
-                  >
+                  <div v-if="column.type === TableTypes.Image" class="flex items-center">
                     <div class="flex-shrink-0 w-10 h-10">
                       <img
                         class="w-full h-full rounded-full"
@@ -78,14 +78,21 @@
 
                   <!-- Строка или Число -->
                   <p
-                    v-if="
-                      column.type === TableTypes.String ||
-                        column.type === TableTypes.Number
-                    "
+                    v-if="column.type === TableTypes.String || column.type === TableTypes.Number"
                     class="text-gray-900 whitespace-no-wrap text-left"
                   >
                     {{ row[column.key] }}
                   </p>
+                </td>
+              </tr>
+
+              <!-- Если под параметры поиска ничего не подошло -->
+              <tr v-if="filteredRows.length === 0 && searchField.length">
+                <td
+                  :colspan="localColumns.length"
+                  class="px-5 py-5 border-b border-gray-200 bg-white text-sm"
+                >
+                  Строк по вашему запросу не найдено. Попробуйте изменить параметры поиска
                 </td>
               </tr>
             </tbody>
@@ -95,18 +102,61 @@
             class="px-5 py-5 bg-white border-t flex flex-col xs:flex-row items-center xs:justify-between"
           >
             <span class="text-xs xs:text-sm text-gray-900">
-              Показаны страницы 1-4 из 50 сущностей
+              Показаны строки {{ startRowNumber }} - {{ endRowNumber }} из
+              {{ total }}
             </span>
             <div class="inline-flex mt-2 xs:mt-0">
               <button
-                class="text-sm bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-l"
+                type="button"
+                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm leading-5 font-medium focus:z-10 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-500 transition ease-in-out duration-150"
+                aria-label="Previous"
+                :class="[
+                  page === 1
+                    ? 'text-gray-200 hover:text-gray-200 cursor-not-allowed'
+                    : 'text-gray-500 hover:text-gray-400'
+                ]"
+                :disabled="page == '1'"
+                @click="changePage(--page)"
               >
-                Предыдущая
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fill-rule="evenodd"
+                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
               </button>
+
               <button
-                class="text-sm bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-r"
+                v-for="p in lastPage"
+                :key="p"
+                class="-ml-px relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm leading-5 font-medium text-gray-700 hover:text-gray-500 focus:z-10 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-700 transition ease-in-out duration-150"
+                :class="[p === page ? 'text-red-500' : 'text-gray-500']"
+                type="button"
+                @click="changePage(p)"
               >
-                Следующая
+                {{ p }}
+              </button>
+
+              <button
+                type="button"
+                class="-ml-px relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm leading-5 font-medium focus:z-10 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-500 transition ease-in-out duration-150"
+                aria-label="Next"
+                :class="[
+                  page === lastPage
+                    ? 'text-gray-200 hover:text-gray-200 cursor-not-allowed'
+                    : 'text-gray-500 hover:text-gray-400'
+                ]"
+                :disabled="page === lastPage"
+                @click="changePage(++page)"
+              >
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fill-rule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
               </button>
             </div>
           </div>
@@ -117,58 +167,158 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import TableTypes from "@/components/table/TableTypes";
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import TableTypes from '@/components/table/TableTypes';
+import axios from 'axios';
 
-export default Vue.extend({
-  name: "Table",
+@Component
+export default class Table extends Vue {
+  /**
+   * Строки таблицы, данные (входной параметр)
+   */
+  @Prop({ type: Array, default: [] })
+  readonly rows!: Array<object>;
 
-  props: {
-    /**
-     * Строки таблицы, данные
-     */
-    rows: {
-      type: Array,
-      required: true
-    },
+  /**
+   * Столбцы таблицы с описанием типов (входной параметр)
+   */
+  @Prop({ type: Array, default: [] })
+  readonly columns!: Array<object>;
 
-    /**
-     * Столбцы таблицы с описанием типов
-     */
-    columns: {
-      type: Array,
-      required: true
+  /**
+   * URL для получения данных
+   */
+  @Prop({
+    type: String,
+    default: ''
+  })
+  readonly url!: string;
+
+  get TableTypes() {
+    return TableTypes;
+  }
+
+  /**
+   * Строки таблицы, данные (состояние комонента)
+   */
+  private localRows: Array<object> = [];
+
+  /**
+   * Столбцы таблицы с описанием типов (состояние комонента)
+   */
+  private localColumns: Array<object> = [];
+
+  /**
+   * Поле поиска по таблице
+   */
+  private searchField = '';
+
+  /**
+   * Текущая страница
+   */
+  private page = 1;
+
+  /**
+   * По сколько страниц запрашивать с бэкэнда
+   */
+
+  private perPage = 10;
+
+  /**
+   * Последняя страница
+   */
+  private lastPage = 1;
+
+  /**
+   * Всего строк
+   */
+  private total = 1;
+
+  /**
+   * Если есть url, то получать row и column из него
+   */
+  mounted() {
+    if (this.rows) {
+      this.localRows = this.rows.slice();
     }
-  },
-
-  data: () => {
-    return {
-      TableTypes,
-
-      /**
-       * Поле поиска по таблице
-       */
-      searchField: ""
-    };
-  },
-
-  computed: {
-    /**
-     * Отфильтрованные строки таблицы
-     */
-    filteredRows() {
-      if (!(this.searchField as string).trim().length) {
-        return this.rows;
-      }
-
-      return this.rows.filter((row: any) =>
-        Object.keys(row).some(key =>
-          (row[key as string] as string).toLowerCase().includes(this.searchField.trim().toLowerCase())
-        )
-      );
+    if (this.columns) {
+      this.localColumns = this.columns.slice();
+    }
+    if (this.url) {
+      this.getRowsAndColumnsFromURL(this.url);
     }
   }
-});
+
+  /**
+   * Номер первой показываемой строки
+   */
+  get startRowNumber() {
+    return this.perPage * (this.page - 1) + 1;
+  }
+
+  /**
+   * Номер последней показываемой строки
+   */
+  get endRowNumber() {
+    return Math.min(this.perPage * this.page, this.total);
+  }
+
+  /**
+   * Отфильтрованные строки таблицы
+   */
+  get filteredRows() {
+    if (!(this.searchField as string).trim().length) {
+      return this.localRows;
+    }
+
+    return this.rows.filter((row: any) =>
+      Object.keys(row).some(key =>
+        (row[key as string] as string).toLowerCase().includes(this.searchField.trim().toLowerCase())
+      )
+    );
+  }
+
+  /**
+   * Получить rows и columns из url
+   * @param url
+   */
+  public getRowsAndColumnsFromURL(url: string): void {
+    axios
+      .get(url, {
+        params: {
+          page: this.page,
+          perPage: this.perPage
+        }
+      })
+      .then(response => {
+        this.lastPage = response.data.lastPage;
+        this.perPage = response.data.perPage;
+        this.page = response.data.page;
+        this.total = response.data.total;
+        this.localRows = response.data.rows;
+        this.localColumns = response.data.columns;
+      });
+  }
+
+  /**
+   * Сменить страницу
+   * @param page - страница
+   */
+  public changePage(page: number): void {
+    this.page = page;
+    this.getRowsAndColumnsFromURL(this.url);
+  }
+
+  /**
+   * Изменить кол-во запрашиваемых страниц
+   * @param perPage - кол-во запрашиваемых страниц
+   */
+  public changePerPage(perPage: number): void {
+    this.perPage = perPage;
+    this.page = 1;
+    this.getRowsAndColumnsFromURL(this.url);
+  }
+}
 </script>
 
 <style scoped lang="scss"></style>
