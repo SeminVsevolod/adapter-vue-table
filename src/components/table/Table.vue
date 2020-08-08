@@ -271,7 +271,7 @@ export default class Table extends Vue {
       return this.localRows;
     }
 
-    return this.rows.filter((row: any) =>
+    return this.localRows.filter((row: any) =>
       Object.keys(row).some(key =>
         (row[key as string] as string).toLowerCase().includes(this.searchField.trim().toLowerCase())
       )
