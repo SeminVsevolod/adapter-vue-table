@@ -1,7 +1,7 @@
 enum TableTypes {
-    String,
-    Image,
-    Number
-};
+  String,
+  Image,
+  Number
+}
 
 export default TableTypes;
