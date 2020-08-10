@@ -8,7 +8,7 @@
 <script>
 // @ is an alias to /src
 import Table from '@/components/table/Table.vue';
-import TableTypes from '@/components/table/TableTypes';
+import COLUMN_TYPE from '@/components/table/COLUMN_TYPE';
 
 export default {
   name: 'Home',
@@ -41,17 +41,17 @@ export default {
 
       columns: [
         {
-          type: TableTypes.String,
+          type: COLUMN_TYPE.STRING,
           key: 'name',
           label: 'Название товара'
         },
         {
-          type: TableTypes.Number,
+          type: COLUMN_TYPE.NUMBER,
           key: 'price',
           label: 'Цена'
         },
         {
-          type: TableTypes.Number,
+          type: COLUMN_TYPE.NUMBER,
           key: 'totalCell',
           label: 'Продаж за месяц'
         }

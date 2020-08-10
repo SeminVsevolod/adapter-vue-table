@@ -1,6 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import Table from '@/components/table/Table.vue';
-import TableTypes from '@/components/table/TableTypes';
+import COLUMN_TYPE from '@/components/table/COLUMN_TYPE';
+import IColumn from '@/components/table/IColumn';
 
 /**
  * Задерживает выполнение программы на время
@@ -20,7 +21,7 @@ describe('Table.vue', () => {
   /**
    * Строки таблицы
    */
-  const rows = [
+  const rows: Array<object> = [
     {
       name: 'John',
       age: '30'
@@ -34,16 +35,16 @@ describe('Table.vue', () => {
   /**
    * Колонки таблицы
    */
-  const columns = [
+  const columns: Array<IColumn> = [
     {
       key: 'name',
       label: 'Имя',
-      type: TableTypes.String
+      type: COLUMN_TYPE.STRING
     },
     {
       key: 'age',
       label: 'Возраст',
-      type: TableTypes.String
+      type: COLUMN_TYPE.NUMBER
     }
   ];
 

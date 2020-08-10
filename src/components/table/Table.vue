@@ -5,7 +5,7 @@
         <div class="flex flex-row mb-1 sm:mb-0">
           <div class="relative">
             <select
-              class="appearance-none h-full rounded-l border block appearance-none w-full bg-white border-gray-400 text-gray-700 py-2 px-4 pr-8 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+              class="appearance-none h-full rounded-l border block w-full bg-white border-gray-400 text-gray-700 py-2 px-4 pr-8 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
               @change="changePerPage($event.target.value)"
               :value="perPage"
               title="По сколько строк отображать за раз"
@@ -66,7 +66,7 @@
                   :key="`row-${row_index}.col-${column.key}`"
                   class="px-5 py-5 border-b border-gray-200 bg-white text-sm"
                 >
-                  <div v-if="column.type === TableTypes.Image" class="flex items-center">
+                  <div v-if="column.type === COLUMN_TYPE.IMAGE" class="flex items-center">
                     <div class="flex-shrink-0 w-10 h-10">
                       <img
                         class="w-full h-full rounded-full"
@@ -78,7 +78,7 @@
 
                   <!-- Строка или Число -->
                   <p
-                    v-if="column.type === TableTypes.String || column.type === TableTypes.Number"
+                    v-if="column.type === COLUMN_TYPE.STRING || column.type === COLUMN_TYPE.NUMBER"
                     class="text-gray-900 whitespace-no-wrap text-left"
                   >
                     {{ row[column.key] }}
@@ -95,70 +95,83 @@
                   Строк по вашему запросу не найдено. Попробуйте изменить параметры поиска
                 </td>
               </tr>
+
+              <tr v-if="errorMessage"></tr>
             </tbody>
           </table>
 
           <div
             class="px-5 py-5 bg-white border-t flex flex-col xs:flex-row items-center xs:justify-between"
           >
-            <span class="text-xs xs:text-sm text-gray-900">
-              Показаны строки {{ startRowNumber }} - {{ endRowNumber }} из
-              {{ total }}
-            </span>
-            <div class="inline-flex mt-2 xs:mt-0">
-              <button
-                type="button"
-                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm leading-5 font-medium focus:z-10 focus:outline-none active:bg-gray-100 active:text-gray-500 transition ease-in-out duration-150"
-                aria-label="Previous"
-                :class="[
-                  page === 1
-                    ? 'text-gray-300 hover:text-gray-300 cursor-not-allowed'
-                    : 'text-gray-500 hover:text-gray-400'
-                ]"
-                :disabled="page == '1'"
-                @click="changePage(--page)"
-              >
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fill-rule="evenodd"
-                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </button>
+            <!-- Если произошла ошибка при получении данных -->
+            <template v-if="errorMessage">
+              <div class="bg-white text-sm text-red-500">
+                При получении данных произошла ошибка: <br />
+                {{ errorMessage }}
+              </div>
+            </template>
 
-              <button
-                v-for="p in lastPage"
-                :key="p"
-                class="-ml-px relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm leading-5 font-medium text-gray-700 hover:text-gray-500 focus:z-10 focus:outline-none active:bg-gray-100 active:text-gray-700 transition ease-in-out duration-150"
-                :class="[p === page ? 'font-bold' : 'font-normal']"
-                type="button"
-                @click="changePage(p)"
-              >
-                {{ p }}
-              </button>
+            <!-- Если получение данных успешно, отображаем пагинатор -->
+            <template v-else>
+              <span class="text-xs xs:text-sm text-gray-900">
+                Показаны строки {{ startRowNumber }} - {{ endRowNumber }} из
+                {{ total }}
+              </span>
+              <div class="inline-flex mt-2 xs:mt-0">
+                <button
+                  type="button"
+                  class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm leading-5 font-medium focus:z-10 focus:outline-none active:bg-gray-100 active:text-gray-500 transition ease-in-out duration-150"
+                  aria-label="Previous"
+                  :class="[
+                    page === 1
+                      ? 'text-gray-300 hover:text-gray-300 cursor-not-allowed'
+                      : 'text-gray-500 hover:text-gray-400'
+                  ]"
+                  :disabled="page == '1'"
+                  @click="changePage(--page)"
+                >
+                  <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                      fill-rule="evenodd"
+                      d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
 
-              <button
-                type="button"
-                class="-ml-px relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm leading-5 font-medium focus:z-10 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-500 transition ease-in-out duration-150"
-                aria-label="Next"
-                :class="[
-                  page === lastPage
-                    ? 'text-gray-300 hover:text-gray-300 cursor-not-allowed'
-                    : 'text-gray-500 hover:text-gray-400'
-                ]"
-                :disabled="page === lastPage"
-                @click="changePage(++page)"
-              >
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fill-rule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </button>
-            </div>
+                <button
+                  v-for="p in lastPage"
+                  :key="p"
+                  class="-ml-px relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm leading-5 font-medium text-gray-700 hover:text-gray-500 focus:z-10 focus:outline-none active:bg-gray-100 active:text-gray-700 transition ease-in-out duration-150"
+                  :class="[p === page ? 'font-bold' : 'font-normal']"
+                  type="button"
+                  @click="changePage(p)"
+                >
+                  {{ p }}
+                </button>
+
+                <button
+                  type="button"
+                  class="-ml-px relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm leading-5 font-medium focus:z-10 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-500 transition ease-in-out duration-150"
+                  aria-label="Next"
+                  :class="[
+                    page === lastPage
+                      ? 'text-gray-300 hover:text-gray-300 cursor-not-allowed'
+                      : 'text-gray-500 hover:text-gray-400'
+                  ]"
+                  :disabled="page === lastPage"
+                  @click="changePage(++page)"
+                >
+                  <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -168,7 +181,9 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
-import TableTypes from '@/components/table/TableTypes';
+import IColumn from './IColumn';
+import ITableDataFromBackend from './ITableDataFromBackend';
+import COLUMN_TYPE from './COLUMN_TYPE';
 import axios from 'axios';
 
 @Component
@@ -183,7 +198,7 @@ export default class Table extends Vue {
    * Столбцы таблицы с описанием типов (входной параметр)
    */
   @Prop({ type: Array, default: [] })
-  readonly columns!: Array<object>;
+  readonly columns!: Array<IColumn>;
 
   /**
    * URL для получения данных
@@ -194,19 +209,22 @@ export default class Table extends Vue {
   })
   readonly url!: string;
 
-  get TableTypes() {
-    return TableTypes;
+  /**
+   * Тип данных колонки
+   */
+  get COLUMN_TYPE() {
+    return COLUMN_TYPE;
   }
 
   /**
-   * Строки таблицы, данные (состояние комонента)
+   * Строки таблицы, данные (состояние компонента)
    */
   private localRows: Array<object> = [];
 
   /**
-   * Столбцы таблицы с описанием типов (состояние комонента)
+   * Столбцы таблицы с описанием типов (состояние компонента)
    */
-  private localColumns: Array<object> = [];
+  private localColumns: Array<IColumn> = [];
 
   /**
    * Поле поиска по таблице
@@ -233,6 +251,11 @@ export default class Table extends Vue {
    * Всего строк
    */
   private total = 1;
+
+  /**
+   * Всего строк
+   */
+  private errorMessage = '';
 
   /**
    * Если есть url, то получать row и column из него
@@ -291,12 +314,31 @@ export default class Table extends Vue {
         }
       })
       .then(response => {
-        this.lastPage = response.data.lastPage;
-        this.perPage = response.data.perPage;
-        this.page = response.data.page;
-        this.total = response.data.total;
-        this.localRows = response.data.rows;
-        this.localColumns = response.data.columns;
+        switch (response.status) {
+          case 200:
+            try {
+              const tableData = response.data as ITableDataFromBackend;
+              this.lastPage = tableData.lastPage;
+              this.perPage = tableData.perPage;
+              this.page = tableData.page;
+              this.total = tableData.total;
+              this.localRows = tableData.rows;
+              this.localColumns = tableData.columns;
+              this.errorMessage = '';
+            } catch (e) {
+              this.errorMessage = e.message;
+            }
+            break;
+
+          default:
+            if (response.data.error) {
+              this.errorMessage = response.data.error;
+            }
+            break;
+        }
+      })
+      .catch(error => {
+        this.errorMessage = error;
       });
   }
 
